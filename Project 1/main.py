@@ -117,8 +117,11 @@ def add_node(graph, node_to_expand, containers, target, new_state):
     else:
         new_h_score = calculate_h_score(containers, new_state, target)
         new_g_score = node_to_expand['g_score'] + 1
+        reachTarget = 0
+        for i in range(len(new_state)):
+            reachTarget |= (new_state[i] == target)
         graph.add_vertex(state=new_state,
-                         goal=(target == 0),
+                         goal=reachTarget,
                          g_score=new_g_score,
                          h_score=new_h_score,
                          f_score=new_h_score + new_g_score,
