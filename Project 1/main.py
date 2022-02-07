@@ -18,18 +18,18 @@ def construct_graph(containers, target):
                  f_score = start_h_score + 0,
                  is_leaf = True)
 
-    while ~check_graph(g):
-        # Expand graph
-        g = expand_graph(g, containers, target)
-        g = expand_graph(g, containers, target)
-        g = expand_graph(g, containers, target)
-        g = expand_graph(g, containers, target)
-        g = expand_graph(g, containers, target)
+    while check_graph(g):
         g = expand_graph(g, containers, target)
 
-        plot(g)
-        break
     return g
+
+def calculate_steps(g):
+    candidates = g.vs.select(is_leaf=True)
+    nodes = candidates(f_score=np.min(candidates['f_score']))
+
+    for node in nodes:
+        if node['goal']:
+            return node['g_score']
 
 def calculate_h_score(containers, state, target):
 
@@ -55,7 +55,7 @@ def calculate_h_score(containers, state, target):
     diff_target = np.absolute(value_nearest - target)
 
     # calculate the h_score by the diff_target
-    h_score = math.floor(diff_target/np.max(containers)) + 1
+    h_score = math.floor(diff_target/np.max(containers[:-1])) + 1
 
     return h_score
 
@@ -65,12 +65,17 @@ def check_graph(g):
 
     for node in nodes:
         if node['goal']:
-            return True
-
-    return False
+            return False
+    print(nodes['goal'], nodes['f_score'])
+    return True
 
 def arreq_in_list(myarr, list_arrays):
-    return next((True for elem in list_arrays if np.array_equal(elem, myarr)), False)
+    for elem in list_arrays:
+        if np.array_equal(elem, myarr):
+            return True
+        else:
+            return False
+    # return next((True for elem in list_arrays if np.array_equal(elem, myarr)), False)
 
 def expand_graph(graph, containers, target):
     # Only expanding one of leaf nodes
@@ -121,11 +126,9 @@ def add_node(graph, node_to_expand, containers, target, new_state):
     else:
         new_h_score = calculate_h_score(containers, new_state, target)
         new_g_score = node_to_expand['g_score'] + 1
-        reachTarget = 0
-        for i in range(len(new_state)):
-            reachTarget |= (new_state[i] == target)
+        goal = target in new_state
         graph.add_vertex(state=new_state,
-                         goal=reachTarget,
+                         goal=goal,
                          g_score=new_g_score,
                          h_score=new_h_score,
                          f_score=new_h_score + new_g_score,
@@ -160,7 +163,10 @@ with open("data.txt", "r") as f:
 
 containers = np.array(input)
 containers = np.append(containers, 999999)
-construct_graph(containers, target)
+g = construct_graph(containers, target)
+num_step = calculate_steps(g)
+plot(g)
+print()
 
 
 # # Playground:
