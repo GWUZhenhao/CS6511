@@ -85,10 +85,27 @@ def expand_graph(graph, containers, target):
             new_state[index] = containers[index]
             graph = add_node(graph, node_to_expand, containers, target, new_state)
 
-        # If the container has water, we can pull it to other container
-        for index_target, water_target in enumerate(current_state):
+        # If the container has water, we can pour it to other container
+        if water != 0:
+            for index_target, water_target in enumerate(current_state):
+                if index != index_target:
+                    new_state = np.array(current_state)
 
-           print()
+                    if water <= containers[index_target] - current_state[index_target]:
+                        new_state[index_target] = current_state[index_target] + water
+                        new_state[index] = 0
+                        graph = add_node(graph, node_to_expand, containers, target, new_state)
+                    else:
+                        new_state[index_target] = containers[index_target]
+                        new_state[index] = water - (containers[index_target] - current_state[index_target])
+                        graph = add_node(graph, node_to_expand, containers, target, new_state)
+
+        # If the container has water, wa can also pour it away.
+        if water != 0:
+            new_state = np.array(current_state)
+            new_state[index] = 0
+            graph = add_node(graph, node_to_expand, containers, target, new_state)
+            
     node_to_expand['is_leaf'] = False
     return graph
 
