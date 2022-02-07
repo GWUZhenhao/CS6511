@@ -23,9 +23,11 @@ def construct_graph(containers, target):
         g = expand_graph(g, containers, target)
         g = expand_graph(g, containers, target)
         g = expand_graph(g, containers, target)
+        g = expand_graph(g, containers, target)
+        g = expand_graph(g, containers, target)
+        g = expand_graph(g, containers, target)
+
         plot(g)
-        g = expand_graph(g, containers, target)
-        g = expand_graph(g, containers, target)
         break
     return g
 
@@ -43,6 +45,8 @@ def calculate_h_score(containers, state, target):
     ind_nearest = inds_near[0]
     for index in inds_near:
         if np.isin(index, inds_reject):
+            continue
+        else:
             ind_nearest = index
             break
     value_nearest = state[ind_nearest]
@@ -140,11 +144,25 @@ def plot(graph):
     visual_style["margin"] = 200
     ig.plot(graph, **visual_style)
 
-containers = np.random.randint(16,25, size=[4])
+# containers = np.random.randint(16,25, size=[4])
+# containers = np.append(containers, 999999)
+# target = 20
+# construct_graph(containers, target)
+# print()
+
+
+with open("data.txt", "r") as f:
+    data = f.readlines()
+    target = int(data[-1])
+    input = data[0].strip('\n').split(',')
+    input = list(map(int, input))
+    print(input)
+
+containers = np.array(input)
 containers = np.append(containers, 999999)
-target = 20
 construct_graph(containers, target)
-print()
+
+
 # # Playground:
 # g = ig.Graph([(0,1), (0,2), (2,3), (3,4), (4,2), (2,5), (5,0), (6,3), (5,6)])
 # ig.summary(g)
