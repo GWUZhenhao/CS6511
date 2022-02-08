@@ -3,6 +3,7 @@ import numpy as np
 import math
 from time import time
 
+# This function will construct the graph
 def construct_graph(containers, target):
 
     select_list = []
@@ -23,24 +24,10 @@ def construct_graph(containers, target):
     i = 0
     while check_graph(g):
         g = expand_graph(g, containers, target, select_list)
-        #print(g.vs['g_score'][-1])
-        '''
-        if i> 15:
-            break
-        plot(g)
-        i += 1
-        '''
 
     return g
 
-def calculate_steps(g):
-    candidates = g.vs.select(is_leaf=True)
-    nodes = candidates(f_score=np.min(candidates['f_score']))
-
-    for node in nodes:
-        if node['goal']:
-            return node['g_score']
-
+# This function calculate H score.
 def calculate_h_score(containers, state, target):
 
     # if the target has been reached, h_score will be 0
@@ -53,7 +40,6 @@ def calculate_h_score(containers, state, target):
     # Find the nearest value to the target
 
     inds_near = np.argsort(np.absolute(state - target))
-    #print('inds_near:', inds_reject, inds_near, np.absolute(state - target), state)
     ind_nearest = inds_near[0]
 
     for index in inds_near:
@@ -66,15 +52,13 @@ def calculate_h_score(containers, state, target):
 
     # calculate the difference between target and the nearest value
     diff_target = np.absolute(value_nearest - target)
-    #print('diff_target:', ind_nearest, value_nearest, target, diff_target)
+
     # calculate the h_score by the diff_target
-
     h_score = math.ceil(diff_target / np.max(containers[:-1]))*2
-    #h_score = math.floor(diff_target/np.max(containers[:-1]))+1
-
 
     return h_score
 
+# Check the graph for ending expanding
 def check_graph(g):
     candidates = g.vs.select(is_leaf=True)
     nodes = candidates(f_score=np.min(candidates['f_score']))
@@ -82,17 +66,9 @@ def check_graph(g):
     for node in nodes:
         if node['goal']:
             return False
-    #print(nodes['goal'], nodes['f_score'])
     return True
 
-def arreq_in_list(myarr, list_arrays):
-    for elem in list_arrays:
-        if np.array_equal(elem, myarr):
-            return True
-        else:
-            return False
-    # return next((True for elem in list_arrays if np.array_equal(elem, myarr)), False)
-
+# This function expand the graph by rules
 def expand_graph(graph, containers, target, select_list):
     # Only expanding one of leaf nodes
     candidates_to_expand = graph.vs.select(is_leaf=True)
@@ -101,7 +77,6 @@ def expand_graph(graph, containers, target, select_list):
     #select_list.append(node_to_expand['state'].tolist())
     current_state = node_to_expand['state'] # Store the current state of that node.
 
-    #
     for index, water in enumerate(current_state):
 
         # If the water is not full. make it full.
@@ -141,8 +116,8 @@ def expand_graph(graph, containers, target, select_list):
     node_to_expand['is_leaf'] = False
     return graph
 
+# This function to add a node for the graph
 def add_node(graph, node_to_expand, containers, target, new_state):
-
     new_h_score = calculate_h_score(containers, new_state, target)
     new_g_score = node_to_expand['g_score'] + 1
     #print(node_to_expand['state'], node_to_expand['g_score'], node_to_expand['h_score'], node_to_expand['f_score'])
@@ -156,6 +131,16 @@ def add_node(graph, node_to_expand, containers, target, new_state):
     graph.add_edge(node_to_expand, graph.vs[-1], weight=1)
     return graph
 
+# This function calculate the shortest path for the graph
+def calculate_steps(g):
+    candidates = g.vs.select(is_leaf=True)
+    nodes = candidates(f_score=np.min(candidates['f_score']))
+
+    for node in nodes:
+        if node['goal']:
+            return node['g_score']
+
+# This function to plot the graph
 def plot(graph):
     layout = graph.layout("kk")
     visual_style = {}
@@ -167,46 +152,36 @@ def plot(graph):
     visual_style["margin"] = 200
     ig.plot(graph, **visual_style)
 
-# containers = np.random.randint(16,25, size=[4])
-# containers = np.append(containers, 999999)
-# target = 20
-# construct_graph(containers, target)
-# print()
 
-
+# Read the file and get the input
 with open("data.txt", "r") as f:
     data = f.readlines()
     target = int(data[-1])
     input = data[0].strip('\n').split(',')
     input = list(map(int, input))
-    print(input)
+    print('The {} containers are: {}'.format(np.alen(input), input))
+    print('And the target is: {}'.format(target))
 
 
 t_start=time()
+
+# calculate the greatest common divisor to determine whether this question has a solution,
+# if there are no solution, print '-1'
 gcd = np.gcd.reduce(input)
 if target % gcd == 0:
     containers = np.array(input)
     containers = np.append(containers, 999999)
+    print('Calculating...')
     g = construct_graph(containers, target)
     num_step = calculate_steps(g)
-    print(num_step)
+    print('We need at least {} steps to reach the target.'.format(num_step))
 else:
     print(-1)
 
-
+# calculate the time and print
 t_end=time()
 t_cost=t_end-t_start
-print(t_cost)
-#plot(g)
+print('Calculating cost {:.3f} seconds.'.format(t_cost))
 
-
-# # Playground:
-# g = ig.Graph([(0,1), (0,2), (2,3), (3,4), (4,2), (2,5), (5,0), (6,3), (5,6)])
-# ig.summary(g)
-# g.vs['f_score'] = [25, 25, 18, 47, 22, 23, 50]
-# a = g.vs.find(f_score=np.min(g.vs['f_score']))
-# layout = g.layout("kk")
-# fig, ax = plt.subplots()
-# ig.plot(g, layout=layout)
 
 
